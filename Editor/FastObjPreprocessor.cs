@@ -23,7 +23,7 @@ namespace FastObjUnity.Editor
                 Debug.LogWarning($"!!!!!!!!{nameof(FastObjPreprocessor)} intentionally renamed {assetPath} to \"{Path.GetFileName(target)}\". To support Fast_Obj reading. The ImportFbxError and missing meta warning should be ignored.");
             }
         }
-        
+
         private static string CreateNonConflictingTargetPath(string directory, string fileBaseName)
         {
             var target = CreateTargetFileName(directory, fileBaseName); // bla/bla/mesh.obj_fast

@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using UnityEngine;
-using UnityEngine.Rendering;
-
-namespace FastObjUnity
+namespace FastObjUnity.Runtime
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Runtime.InteropServices;
+    using UnityEngine;
+    using UnityEngine.Rendering;
+    
     public class FastObjConverter
     {
         [DllImport("fast_obj_unity", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -16,7 +16,7 @@ namespace FastObjUnity
         private static extern void destroy_mesh(IntPtr mesh);
 
         
-        public static List<(string, Mesh)> TestFastObj(string filename)
+        public static List<(string, Mesh)> TestFastObj(string filename, bool optimize = false)
         {
             var meshPointer = read_obj(filename);
             if (meshPointer == IntPtr.Zero) 
@@ -76,6 +76,10 @@ namespace FastObjUnity
                 mesh.vertices = vertices.ToArray();
                 mesh.normals = normals.ToArray();
                 mesh.triangles = triangles.ToArray();
+                if (optimize)
+                {
+                    mesh.Optimize();
+                }
                 mesh.RecalculateBounds();
                 result.Add((name, mesh));
             }

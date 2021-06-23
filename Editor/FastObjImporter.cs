@@ -1,4 +1,6 @@
-﻿namespace FastObjUnity
+﻿using FastObjUnity.Runtime;
+
+namespace FastObjUnity.Editor
 {
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -32,11 +34,12 @@
         private void CreateNode((string Key, Mesh Value) meshWithName, GameObject model, AssetImportContext ctx,
             HashSet<string> nameSet, Material material)
         {
-            var go = new GameObject(meshWithName.Key);
+            var nodeName = string.IsNullOrWhiteSpace(meshWithName.Key) ? "unnamed" : meshWithName.Key;
+            var go = new GameObject(nodeName);
             go.transform.SetParent(model.transform);
-            ctx.AddObjectToAsset(GetFreeNameIdentifier(meshWithName.Key, nameSet), go);
+            ctx.AddObjectToAsset(GetFreeNameIdentifier(nodeName, nameSet), go);
             go.AddComponent<MeshFilter>().sharedMesh = meshWithName.Value;
-            ctx.AddObjectToAsset(GetFreeNameIdentifier(meshWithName.Key, nameSet), meshWithName.Value);
+            ctx.AddObjectToAsset(GetFreeNameIdentifier(nodeName, nameSet), meshWithName.Value);
             go.AddComponent<MeshRenderer>().sharedMaterial = material;
         }
 
