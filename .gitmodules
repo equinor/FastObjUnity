@@ -1,0 +1,3 @@
+[submodule "NativePlugin~/fast_obj"]
+	path = NativePlugin~/fast_obj
+	url = https://github.com/thisistherk/fast_obj

@@ -1,0 +1,11 @@
+{
+    "displayName": "Fast OBJ importer",
+    "name": "com.equinor.unity.fastobj",
+    "version": "0.0.1",
+    "unity": "2020.3",
+    "description": "Unity tools and utilities",
+    "keywords": ["tools"],
+    "categories": "Tools",
+    "dependencies": {
+    }
+}
