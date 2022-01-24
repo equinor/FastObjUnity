@@ -68,5 +68,10 @@ namespace FastObjUnity
         {
             return MarshalHelper.RetrieveStructs<FastObjGroup>(groups, (int)group_count);
         }
+
+        public FastObjMaterial[] GetMaterials()
+        {
+            return MarshalHelper.RetrieveStructs<FastObjMaterial>(materials, (int)material_count);
+        }
     }
 }

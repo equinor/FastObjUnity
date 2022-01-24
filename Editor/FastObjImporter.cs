@@ -17,21 +17,25 @@ namespace FastObjUnity.Editor
         {
             var nameSet = new HashSet<string>();
             var stopwatch = Stopwatch.StartNew();
-            var material = new Material(Shader.Find("Standard"));
+            var defaultMaterial = new Material(Shader.Find("Standard"));
             var globalPath = Path.Combine(Application.dataPath, "..", ctx.assetPath);
-            var meshes = FastObjConverter.TestFastObj(globalPath);
+            var (meshes, materials) = FastObjConverter.TestFastObj(globalPath);
             var gameObjectName = Path.GetFileName(globalPath);
             var model = new GameObject(gameObjectName);
             ctx.AddObjectToAsset(GetFreeNameIdentifier(gameObjectName, nameSet), model);
             foreach (var child in meshes)
-                CreateNode(child, model, ctx, nameSet, material);
-            ctx.AddObjectToAsset(GetFreeNameIdentifier("defaultMaterial", nameSet), material);
+                CreateNode(child, model, ctx, nameSet, defaultMaterial);
+            foreach (var material in materials)
+            {
+                ctx.AddObjectToAsset(GetFreeNameIdentifier(material.Item1, nameSet), material.Item2);    
+            }
+            ctx.AddObjectToAsset(GetFreeNameIdentifier("defaultMaterial", nameSet), defaultMaterial);
             ctx.SetMainObject(model);
             stopwatch.Stop();
             UnityEngine.Debug.Log($"Import of {ctx.assetPath} completed in {stopwatch.Elapsed}");
         }
 
-        private void CreateNode((string Key, Mesh Value) meshWithName, GameObject model, AssetImportContext ctx,
+        private void CreateNode((string Key, Mesh Value, Material material) meshWithName, GameObject model, AssetImportContext ctx,
             HashSet<string> nameSet, Material material)
         {
             var nodeName = string.IsNullOrWhiteSpace(meshWithName.Key) ? "unnamed" : meshWithName.Key;
@@ -40,7 +44,7 @@ namespace FastObjUnity.Editor
             ctx.AddObjectToAsset(GetFreeNameIdentifier(nodeName, nameSet), go);
             go.AddComponent<MeshFilter>().sharedMesh = meshWithName.Value;
             ctx.AddObjectToAsset(GetFreeNameIdentifier(nodeName, nameSet), meshWithName.Value);
-            go.AddComponent<MeshRenderer>().sharedMaterial = material;
+            go.AddComponent<MeshRenderer>().sharedMaterial = meshWithName.material;
         }
 
         private static string GetFreeNameIdentifier(string initialName, HashSet<string> usedIdentifiers)
