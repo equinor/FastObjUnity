@@ -1,3 +1,6 @@
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
+
 namespace FastObjUnity.Runtime
 {
     using System;
@@ -63,12 +66,11 @@ namespace FastObjUnity.Runtime
                 allIndices[indiceIndex++] = indices[i + 1];
             }
 
-            var vertices = new List<Vector3>();
-            var normals = new List<Vector3>();
-            var triangles = new List<int>();
-            var vertexMap = new Dictionary<FastObjIndex, int>();
             var vertexCountsPerFaceLength = vertexCountsPerFace.Length;
-            foreach (var fastObjGroup in fastObjMesh.GetGroups())
+            var fastObjGroups = fastObjMesh.GetGroups();
+            var meshes = new ConcurrentDictionary<long, MeshContainer>();
+
+            Parallel.ForEach(fastObjGroups, (fastObjGroup, _, index) =>
             {
                 // TODO: rebuild indexBuffer for non-triangular meshes
                 var faceOffset = fastObjGroup.face_offset;
@@ -77,18 +79,22 @@ namespace FastObjUnity.Runtime
                 var indexBufferLength = 0;
                 for (var i = 0; i < vertexCountsPerFaceLength; i++)
                 {
-                    if (i < faceOffset) indexBufferOffset += vertexCountsPerFace[i];
-                    else if (i < faceCountPlusOffset) indexBufferLength += vertexCountsPerFace[i];
-                    else break;
+                    if (i < faceOffset)
+                        indexBufferOffset += vertexCountsPerFace[i];
+                    else if (i < faceCountPlusOffset)
+                        indexBufferLength += vertexCountsPerFace[i];
+                    else
+                        break;
                 }
 
-                vertices.Clear();
-                normals.Clear();
-                triangles.Clear();
-                vertexMap.Clear();
                 var triangleCount = 0;
                 var verticeCount = 0;
-                for (var j = indexBufferOffset; j < indexBufferOffset + indexBufferLength; j++)
+                var indexBufferOffsetPlusLength = indexBufferOffset + indexBufferLength;
+                var vertices = new List<Vector3>(indexBufferLength);
+                var normals = new List<Vector3>(indexBufferLength);
+                var triangles = new List<int>(indexBufferLength);
+                var vertexMap = new Dictionary<FastObjIndex, int>(indexBufferLength);
+                for (var j = indexBufferOffset; j < indexBufferOffsetPlusLength; j++)
                 {
                     var facePoint = allIndices[j];
                     if (!vertexMap.TryGetValue(facePoint, out var key))
@@ -99,29 +105,54 @@ namespace FastObjUnity.Runtime
                         normals.Add(allNormals[facePoint.n - 1]);
                         verticeCount++;
                     }
+
                     triangles.Add(key);
                     triangleCount++;
                 }
 
-                var mesh = new Mesh
+                meshes.TryAdd(index, new MeshContainer
                 {
-                    indexFormat = triangleCount > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16,
-                    vertices = vertices.ToArray(),
-                    normals = normals.ToArray(),
-                    triangles = triangles.ToArray()
+                    IndexFormat = triangleCount > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16,
+                    Vertices = vertices.ToArray(),
+                    Normals = normals.ToArray(),
+                    Triangles = triangles.ToArray(),
+                    Name = fastObjGroup.GetName(),
+                });
+            });
+
+            for (var i = 0; i < meshes.Count; i++)
+            {
+                if (!meshes.TryGetValue(i, out var meshContainer))
+                    continue;
+
+                var unityMesh = new Mesh
+                {
+                    indexFormat = meshContainer.IndexFormat,
+                    vertices = meshContainer.Vertices,
+                    normals = meshContainer.Normals,
+                    triangles = meshContainer.Triangles
                 };
 
                 if (optimize)
                 {
-                    mesh.Optimize();
+                    unityMesh.Optimize();
                 }
 
-                mesh.RecalculateBounds();
-                result.Add((fastObjGroup.GetName(), mesh));
+                unityMesh.RecalculateBounds();
+                result.Add((meshContainer.Name, unityMesh));
             }
 
             destroy_mesh(meshPointer);
             return result;
         }
+    }
+
+    public class MeshContainer
+    {
+        public IndexFormat IndexFormat;
+        public Vector3[] Vertices;
+        public Vector3[] Normals;
+        public int[] Triangles;
+        public string Name;
     }
 }
