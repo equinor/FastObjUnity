@@ -1,6 +1,6 @@
 {
   "displayName": "Fast OBJ importer",
-  "name": "com.equinor.fastobjunity",
+  "name": "com.equinor.unity.fastobj",
   "version": "0.0.2",
   "unity": "2020.3",
   "description": "Faster OBJ import",
