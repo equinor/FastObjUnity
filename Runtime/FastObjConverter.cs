@@ -74,6 +74,7 @@ namespace FastObjUnity.Runtime
             var fastObjGroups = fastObjMesh.GetGroups();
             var meshes = new ConcurrentDictionary<long, MeshContainer>();
 
+            // NOTE: Parallel.ForEach is only used in the editor because we did not bother testing it on device. It might be OK to have this enabled at runtime as well.
 #if UNITY_EDITOR || FORCE_PARALLEL_IMPORT
             Parallel.ForEach(fastObjGroups, (fastObjGroup, _, index) =>
             {
