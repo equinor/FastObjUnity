@@ -1,9 +1,9 @@
+#if FASTOBJ_AUTORENAME
 using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-#if !FASTOBJ_AUTORENAME
 namespace FastObjUnity.Editor
 {
     public class FastObjPreprocessor : AssetPostprocessor
@@ -11,17 +11,16 @@ namespace FastObjUnity.Editor
         public void OnPreprocessModel()
         {
             if (assetPath == null)
-                return;    
+                return;
             var fileExtension = Path.GetExtension(assetPath);
-            if (fileExtension.Equals(".obj", StringComparison.OrdinalIgnoreCase)
-                && assetImporter.importSettingsMissing)
+            if (fileExtension.Equals(".obj", StringComparison.OrdinalIgnoreCase) && assetImporter.importSettingsMissing)
             {
                 var fileBaseName = Path.GetFileNameWithoutExtension(assetPath);
                 var directory = Path.GetDirectoryName(assetPath);
                 var target = CreateNonConflictingTargetPath(directory, fileBaseName);
                 File.Move(assetPath, target);
                 File.Delete(assetPath + ".meta"); // Remove temp metafile.
-                Debug.LogWarning($"!!!!!!!!{nameof(FastObjPreprocessor)} intentionally renamed {assetPath} to \"{Path.GetFileName(target)}\". To support Fast_Obj reading. The ImportFbxError and missing meta warning should be ignored.");
+                Debug.LogWarning($"!!!!!!!!{nameof(FastObjPreprocessor)} intentionally renamed {assetPath} to \"{Path.GetFileName(target)}\" to support Fast_Obj reading. The ImportFbxError and missing meta warning should be ignored.");
             }
         }
 
@@ -32,15 +31,14 @@ namespace FastObjUnity.Editor
             while (File.Exists(target))
             {
                 target = CreateTargetFileName(directory, fileBaseName, $"_{i++}");
-            }    
+            }
             return target;
         }
-        
+
         private static string CreateTargetFileName(string directory, string fileBaseName, string fileBaseNameSuffix = "")
         {
             return Path.Combine(directory, fileBaseName + fileBaseNameSuffix + ".obj_fast");
         }
     }
-
 }
 #endif

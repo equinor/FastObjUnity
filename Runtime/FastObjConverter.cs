@@ -1,15 +1,19 @@
+// #define FORCE_PARALLEL_IMPORT // Uncomment to force use of parallel import even outside Unity Editor
+
+using System;
+using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Linq;
+using System.Runtime.InteropServices;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+#if UNITY_EDITOR || FORCE_PARALLEL_IMPORT
 using System.Threading.Tasks;
+#endif
 
 namespace FastObjUnity.Runtime
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Runtime.InteropServices;
-    using UnityEngine;
-    using UnityEngine.Rendering;
-
     public class FastObjConverter
     {
         [DllImport("fast_obj_unity", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -18,14 +22,14 @@ namespace FastObjUnity.Runtime
         [DllImport("fast_obj_unity", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void destroy_mesh(IntPtr mesh);
 
-        public static List<(string, Mesh)> TestFastObj(string filename, bool optimize = false)
+        // TODO: non-triangulated meshes support
+        // TODO: materials and textures
+        public static List<(string, Mesh)> ImportFastObj(string filename, bool optimize = false)
         {
             var meshPointer = read_obj(filename);
             if (meshPointer == IntPtr.Zero)
-                throw new Exception($"Failed to import {filename}");
+                throw new Exception($"Failed to import {filename}. Meshpointer is IntPtr.Zero");
 
-            // TODO: non-triangulated meshes support
-            // TODO: materials and textures
             var result = new List<(string, Mesh)>();
             var fastObjMesh = Marshal.PtrToStructure<FastObjMesh>(meshPointer);
 
@@ -53,7 +57,7 @@ namespace FastObjUnity.Runtime
             var vertexCountsPerFace = fastObjMesh.GetFaceVertexCounts();
 
             if (vertexCountsPerFace.Any(c => c != 3))
-                throw new NotImplementedException("Only support triangulated meshes for now");
+                throw new NotImplementedException($"Failed to import {filename}. Only support triangulated meshes for now");
 
             var indices = fastObjMesh.GetIndices(vertexCountsPerFace);
             var indicesLength = indices.Length;
@@ -70,8 +74,14 @@ namespace FastObjUnity.Runtime
             var fastObjGroups = fastObjMesh.GetGroups();
             var meshes = new ConcurrentDictionary<long, MeshContainer>();
 
+#if UNITY_EDITOR || FORCE_PARALLEL_IMPORT
             Parallel.ForEach(fastObjGroups, (fastObjGroup, _, index) =>
             {
+#else
+            for (var index = 0; index < fastObjGroups.Length; index++)
+            {
+                var fastObjGroup = fastObjGroups[index];
+#endif
                 // TODO: rebuild indexBuffer for non-triangular meshes
                 var faceOffset = fastObjGroup.face_offset;
                 var faceCountPlusOffset = fastObjGroup.face_count + faceOffset;
@@ -110,15 +120,22 @@ namespace FastObjUnity.Runtime
                     triangleCount++;
                 }
 
-                meshes.TryAdd(index, new MeshContainer
+                var meshContainer = new MeshContainer
                 {
                     IndexFormat = triangleCount > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16,
                     Vertices = vertices.ToArray(),
                     Normals = normals.ToArray(),
                     Triangles = triangles.ToArray(),
                     Name = fastObjGroup.GetName(),
-                });
+                };
+
+                if (!meshes.TryAdd(index, meshContainer))
+                    Debug.LogError($"Mesh index {index} for {meshContainer.Name} already added.");
+#if UNITY_EDITOR || FORCE_PARALLEL_IMPORT
             });
+#else
+            }
+#endif
 
             for (var i = 0; i < meshes.Count; i++)
             {
