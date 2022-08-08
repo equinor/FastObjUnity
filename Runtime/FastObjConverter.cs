@@ -130,7 +130,8 @@ namespace FastObjUnity.Runtime
                 };
 
                 if (!meshes.TryAdd(index, meshContainer))
-                    Debug.LogError($"Mesh index {index} for {meshContainer.Name} already added.");
+                    Debug.LogError($"Mesh index {index} for {meshContainer.Name} already added. Discarding new value.");
+
 #if UNITY_EDITOR || FORCE_PARALLEL_IMPORT
             });
 #else
@@ -140,7 +141,7 @@ namespace FastObjUnity.Runtime
             for (var i = 0; i < meshes.Count; i++)
             {
                 if (!meshes.TryGetValue(i, out var meshContainer))
-                    continue;
+                    throw new KeyNotFoundException($"Failed to import {filename}. Given index {i} did not exist in {nameof(meshes)} when acquiring {nameof(meshContainer)}.");
 
                 var unityMesh = new Mesh
                 {
