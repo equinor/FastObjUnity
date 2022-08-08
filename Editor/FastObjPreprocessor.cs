@@ -11,7 +11,8 @@ namespace FastObjUnity.Editor
         public void OnPreprocessModel()
         {
             if (assetPath == null)
-                return;    var fileExtension = Path.GetExtension(assetPath);
+                return;    
+            var fileExtension = Path.GetExtension(assetPath);
             if (fileExtension.Equals(".obj", StringComparison.OrdinalIgnoreCase)
                 && assetImporter.importSettingsMissing)
             {
@@ -30,8 +31,9 @@ namespace FastObjUnity.Editor
             var i = 1;
             while (File.Exists(target))
             {
-                target = CreateTargetFileName(directory, fileBaseName, $" {i++}");
-            }    return target;
+                target = CreateTargetFileName(directory, fileBaseName, $"_{i++}");
+            }    
+            return target;
         }
         
         private static string CreateTargetFileName(string directory, string fileBaseName, string fileBaseNameSuffix = "")
