@@ -17,18 +17,18 @@ namespace FastObjUnity
         private readonly uint normal_count;
         private readonly IntPtr normals; // floats
 
-
         private readonly uint face_count;
         private readonly IntPtr face_vertices; // ints
         private readonly IntPtr face_materials; // ints
 
-
+        private readonly uint index_count;
         private readonly IntPtr indices; // structs
-
 
         private readonly uint material_count;
         private readonly IntPtr materials; // structs
 
+        private readonly uint object_count;
+        private readonly IntPtr objects; // structs
 
         private readonly uint group_count;
         private readonly IntPtr groups; // structs
@@ -58,15 +58,24 @@ namespace FastObjUnity
             return MarshalHelper.RetrieveInts(face_materials, (int) face_count);
         }
 
-        public FastObjIndex[] GetIndices(int[] vertexCountsPerFace)
+        public FastObjIndex[] GetIndices()
         {
-            var totalIndicies = vertexCountsPerFace.Sum();
-            return MarshalHelper.RetrieveStructs<FastObjIndex>(indices, totalIndicies);
+            return MarshalHelper.RetrieveStructs<FastObjIndex>(indices, (int) index_count);
+        }
+
+        public FastObjMaterial[] GetMaterials()
+        {
+            return MarshalHelper.RetrieveStructs<FastObjMaterial>(materials, (int) material_count);
+        }
+
+        public FastObjGroup[] GetObjects()
+        {
+            return MarshalHelper.RetrieveStructs<FastObjGroup>(objects, (int) object_count);
         }
 
         public FastObjGroup[] GetGroups()
         {
-            return MarshalHelper.RetrieveStructs<FastObjGroup>(groups, (int)group_count);
+            return MarshalHelper.RetrieveStructs<FastObjGroup>(groups, (int) group_count);
         }
     }
 }

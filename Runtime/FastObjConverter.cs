@@ -30,8 +30,13 @@ namespace FastObjUnity.Runtime
             if (meshPointer == IntPtr.Zero)
                 throw new Exception($"Failed to import {filename}. Meshpointer is IntPtr.Zero");
 
-            var result = new List<(string, Mesh)>();
             var fastObjMesh = Marshal.PtrToStructure<FastObjMesh>(meshPointer);
+
+            // For correct face normals we need to flip second and third vertex in a triangle
+            // TODO: this will break on non-triangular meshes
+            var vertexCountsPerFace = fastObjMesh.GetFaceVertexCounts();
+            if (vertexCountsPerFace.Any(c => c != 3))
+                throw new NotImplementedException($"Failed to import {filename}. Only support triangulated meshes for now");
 
             // Mirror on X for Unity coordinate system
             var vertexPositions = fastObjMesh.GetPositions();
@@ -52,14 +57,7 @@ namespace FastObjUnity.Runtime
                 allNormals[meshIndex++] = new Vector3(-meshNormals[i], meshNormals[i + 1], meshNormals[i + 2]);
             }
 
-            // For correct face normals we need to flip second and third vertex in a triangle
-            // TODO: this will break on non-triangular meshes
-            var vertexCountsPerFace = fastObjMesh.GetFaceVertexCounts();
-
-            if (vertexCountsPerFace.Any(c => c != 3))
-                throw new NotImplementedException($"Failed to import {filename}. Only support triangulated meshes for now");
-
-            var indices = fastObjMesh.GetIndices(vertexCountsPerFace);
+            var indices = fastObjMesh.GetIndices();
             var indicesLength = indices.Length;
             var allIndices = new FastObjIndex[indicesLength];
             var indiceIndex = 0;
@@ -139,6 +137,7 @@ namespace FastObjUnity.Runtime
             }
 #endif
 
+            var result = new List<(string, Mesh)>();
             for (var i = 0; i < meshes.Count; i++)
             {
                 if (!meshes.TryGetValue(i, out var meshContainer))
@@ -164,14 +163,14 @@ namespace FastObjUnity.Runtime
             destroy_mesh(meshPointer);
             return result;
         }
-    }
 
-    public class MeshContainer
-    {
-        public IndexFormat IndexFormat;
-        public Vector3[] Vertices;
-        public Vector3[] Normals;
-        public int[] Triangles;
-        public string Name;
+        private class MeshContainer
+        {
+            public IndexFormat IndexFormat;
+            public Vector3[] Vertices;
+            public Vector3[] Normals;
+            public int[] Triangles;
+            public string Name;
+        }
     }
 }
