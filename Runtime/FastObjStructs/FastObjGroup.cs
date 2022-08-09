@@ -6,14 +6,10 @@ namespace FastObjUnity
     [StructLayout(LayoutKind.Sequential)]
     internal readonly struct FastObjGroup
     {
-        /* ASCII string */
-        private readonly IntPtr name;
-        /* Number of faces */
-        internal readonly uint face_count;
-        /* First face in fastObjMesh face_* arrays */
-        internal readonly uint face_offset;
-        /* First index in fastObjMesh indices array */
-        internal readonly uint index_offset;
+        private readonly IntPtr name; // ASCII string
+        public readonly uint face_count; // Number of faces
+        public readonly uint face_offset; // First face in fastObjMesh face_* arrays
+        public readonly uint index_offset; // First index in fastObjMesh indices array
 
         public string GetName()
         {
