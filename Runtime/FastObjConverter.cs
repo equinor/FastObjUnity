@@ -34,18 +34,18 @@ namespace FastObjUnity.Runtime
 
             // For correct face normals we need to flip second and third vertex in a triangle
             // TODO: this will break on non-triangular meshes
-            var vertexCountsPerFace = fastObjMesh.GetFaceVertexCounts();
-            if (vertexCountsPerFace.Any(c => c != 3))
+            var faceVertices = fastObjMesh.GetFaceVertices();
+            if (faceVertices.Any(c => c != 3))
                 throw new NotImplementedException($"Failed to import {filename}. Only support triangulated meshes for now");
 
             // Mirror on X for Unity coordinate system
-            var vertexPositions = fastObjMesh.GetPositions();
-            var verticeLength = vertexPositions.Length;
-            var allVertices = new Vector3[(verticeLength / 3) - 1];
+            var positions = fastObjMesh.GetPositions();
+            var positionsLength = positions.Length;
+            var allVertices = new Vector3[(positionsLength / 3) - 1];
             var vertexIndex = 0;
-            for (var i = 3; i < verticeLength; i += 3)
+            for (var i = 3; i < positionsLength; i += 3)
             {
-                allVertices[vertexIndex++] = new Vector3(-vertexPositions[i], vertexPositions[i + 1], vertexPositions[i + 2]);
+                allVertices[vertexIndex++] = new Vector3(-positions[i], positions[i + 1], positions[i + 2]);
             }
 
             var meshNormals = fastObjMesh.GetNormals();
@@ -68,7 +68,7 @@ namespace FastObjUnity.Runtime
                 allIndices[indiceIndex++] = indices[i + 1];
             }
 
-            var vertexCountsPerFaceLength = vertexCountsPerFace.Length;
+            var faceVerticesLength = faceVertices.Length;
             var fastObjGroups = fastObjMesh.GetGroups();
             var meshes = new ConcurrentDictionary<long, MeshContainer>();
 
@@ -86,12 +86,12 @@ namespace FastObjUnity.Runtime
                 var faceCountPlusOffset = fastObjGroup.face_count + faceOffset;
                 var indexBufferOffset = 0;
                 var indexBufferLength = 0;
-                for (var i = 0; i < vertexCountsPerFaceLength; i++)
+                for (var i = 0; i < faceVerticesLength; i++)
                 {
                     if (i < faceOffset)
-                        indexBufferOffset += vertexCountsPerFace[i];
+                        indexBufferOffset += faceVertices[i];
                     else if (i < faceCountPlusOffset)
-                        indexBufferLength += vertexCountsPerFace[i];
+                        indexBufferLength += faceVertices[i];
                     else
                         break;
                 }
