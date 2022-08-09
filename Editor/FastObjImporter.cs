@@ -14,19 +14,27 @@ namespace FastObjUnity.Editor
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var stopwatch = Stopwatch.StartNew();
-            var nameSet = new HashSet<string>();
-            var material = new Material(Shader.Find("Standard"));
+
+            // Import obj_fast file
             var globalPath = Path.Combine(Application.dataPath, "..", ctx.assetPath);
             var meshes = FastObjConverter.ImportFastObj(globalPath);
+
+            // Create empty asset
             var gameObjectName = Path.GetFileName(globalPath);
             var model = new GameObject(gameObjectName);
-            var modelTransform = model.transform;
-
+            var nameSet = new HashSet<string>();
             ctx.AddObjectToAsset(GetFreeNameIdentifier(gameObjectName, nameSet), model);
+
+            // Fill asset with objects
+            var material = new Material(Shader.Find("Standard"));
+            var modelTransform = model.transform;
             foreach (var child in meshes)
                 CreateNode(child, modelTransform, ctx, nameSet, material);
+
+            // Finalize asset creation
             ctx.AddObjectToAsset(GetFreeNameIdentifier("defaultMaterial", nameSet), material);
             ctx.SetMainObject(model);
+
             stopwatch.Stop();
             UnityEngine.Debug.Log($"Import of {ctx.assetPath} completed in {(stopwatch.ElapsedMilliseconds / 1000f):F1} seconds");
         }

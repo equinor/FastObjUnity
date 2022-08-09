@@ -48,7 +48,7 @@ namespace FastObjUnity
             return MarshalHelper.RetrieveFloats(normals, (int) normal_count * 3);
         }
 
-        public int[] GetFaceVertexCounts()
+        public int[] GetFaceVertices()
         {
             return MarshalHelper.RetrieveInts(face_vertices, (int) face_count);
         }
