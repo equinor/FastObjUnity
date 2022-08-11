@@ -2,7 +2,7 @@
 
 A fast obj importer and reader for Unity. Should have runtime support.
 
-This package uses [fast_obj]([https://](https://github.com/thisistherk/fast_obj)) implementation for reading OBJ files, which is licensed under the [MIT License](https://github.com/thisistherk/fast_obj/blob/master/LICENSE).
+This package uses the [thisistherk/fast_obj](https://github.com/thisistherk/fast_obj) implementation for reading OBJ files, which is licensed under the [MIT License](https://github.com/thisistherk/fast_obj/blob/master/LICENSE).
 
 ## How to add this to your project
 
