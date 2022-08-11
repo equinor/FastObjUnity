@@ -1,6 +1,8 @@
 # Fast OBJ importer for Unity
 
-This package uses [fast_obj]([https://](https://github.com/thisistherk/fast_obj)) implementation for reading OBJ files.
+A fast obj importer and reader for Unity. Should have runtime support.
+
+This package uses [fast_obj]([https://](https://github.com/thisistherk/fast_obj)) implementation for reading OBJ files, which is licensed under the [MIT License](https://github.com/thisistherk/fast_obj/blob/master/LICENSE).
 
 ## How to add this to your project
 
@@ -52,3 +54,7 @@ cmake ..
 Open generated solution file.
 
 Build.
+
+## Code of Conduct
+
+This project follows the Equinor Code of Conduct: <https://github.com/equinor/opensource/blob/master/CODE_OF_CONDUCT.md>
