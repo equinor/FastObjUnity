@@ -24,7 +24,7 @@ namespace FastObjUnity.Runtime
 
         // TODO: non-triangulated meshes support
         // TODO: materials and textures
-        public static List<(string, Mesh)> ImportFastObj(string filename, bool optimize = false)
+        public static List<(string, Mesh)> ImportFastObj(string filename, bool optimize = true)
         {
             var meshPointer = read_obj(filename);
             if (meshPointer == IntPtr.Zero)
